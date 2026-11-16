@@ -1,0 +1,17 @@
+{
+  "name": "kladka-workspace",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": {
+    "setup": "npm ci --prefix backend && npm ci --prefix Kladka.UA",
+    "start": "npm start --prefix Kladka.UA",
+    "backend": "npm start --prefix backend",
+    "web": "npm run web --prefix Kladka.UA",
+    "tunnel": "npm run tunnel --prefix Kladka.UA",
+    "typecheck": "npm run typecheck --prefix Kladka.UA",
+    "lint": "npm run lint --prefix Kladka.UA",
+    "test": "npm test --prefix backend && npm test --prefix Kladka.UA",
+    "init-env": "node scripts/init-env.js",
+    "test:remote": "node scripts/test-remote.js"
+  }
+}
