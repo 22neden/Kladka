@@ -1,0 +1,1 @@
+__d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return o}}),r(d[0]);var t=r(d[1]),n=r(d[2]),c=r(d[3]),u=r(d[4]);function o(){const{id:o}=(0,t.useLocalSearchParams)();return(0,u.jsx)(n.ChatScreen,{id:o,onBack:c.back,navigate:c.navigate})}},768,[12,776,782,780,6]);

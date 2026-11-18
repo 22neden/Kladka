@@ -1,0 +1,18 @@
+{
+  "name": "kladka-workspace",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": {
+    "setup": "npm ci --prefix apps/backend && npm ci --prefix apps/frontend",
+    "start": "npm start --prefix apps/backend",
+    "frontend": "npm start --prefix apps/frontend",
+    "backend": "npm start --prefix apps/backend",
+    "web": "npm run web --prefix apps/frontend",
+    "tunnel": "npm run tunnel --prefix apps/frontend",
+    "typecheck": "npm run typecheck --prefix apps/frontend",
+    "lint": "npm run lint --prefix apps/frontend",
+    "test": "npm test --prefix apps/backend && npm test --prefix apps/frontend",
+    "init-env": "node scripts/init-env.js",
+    "test:remote": "node scripts/test-remote.js"
+  }
+}
