@@ -1,4 +1,4 @@
-fservices:
+services:
   - type: web
     name: kladka-api
     runtime: node
