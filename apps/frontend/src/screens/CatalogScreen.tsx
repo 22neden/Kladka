@@ -15,7 +15,7 @@ export function CatalogScreen({ kind, navigate }: { kind: ListingKind; navigate:
   const [cityOpen, setCityOpen] = useState(false);
   const [citySearch, setCitySearch] = useState('');
   const listings = useMemo(() => filterListings(store.listings, activeKind, filters, store.blocked), [store.listings, store.blocked, activeKind, filters]);
-  const filtered = Boolean(filters.city || filters.maxPrice || filters.category !== 'all' || filters.query);
+  const filtered = Boolean(filters.city || filters.minPrice || filters.maxPrice || filters.urgency !== 'any' || filters.category !== 'all' || filters.query);
   const service = activeKind === 'service';
   function openFilter() { setDraft({ ...filters }); setFilterOpen(true); }
   return <Page>
@@ -34,16 +34,18 @@ export function CatalogScreen({ kind, navigate }: { kind: ListingKind; navigate:
           <Chip title="Послуги майстрів" active={service} icon="tool" onPress={() => { setActiveKind('service'); setFilters({ ...emptyFilters }); }} />
           <Chip title="Заявки на роботи" active={!service} icon="layers" onPress={() => { setActiveKind('request'); setFilters({ ...emptyFilters }); }} />
         </Row>
-        <Row style={{ gap: 10, marginBottom: 22 }}>
-          <View style={{ flex: 1, position: 'relative' }}>
+        <View style={{ marginBottom: 14 }}>
+          <View style={{ position: 'relative' }}>
             <Field accessibilityLabel="Пошук оголошень" placeholder={service ? 'Який майстер вам потрібен?' : 'Знайти роботи…'} value={filters.query} onChangeText={query => setFilters(f => ({ ...f, query }))} style={{ paddingLeft: 42, marginBottom: -18 }} />
             <View style={{ position: 'absolute', left: 15, top: 18 }} pointerEvents="none"><Icon name="search" color={C.muted} size={17} /></View>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 22, gap: 8, paddingBottom: 18 }}>
-            {['Ремонт квартири', 'Будинок під ключ', 'Електрика', 'Сантехніка', 'Плитка', 'Фарбування'].map(query => <Chip key={query} title={query} onPress={() => setFilters(f => ({ ...f, query }))} />)}
-          </ScrollView>
-          <RoundButton icon="sliders" label="Фільтри" active={Boolean(filters.maxPrice || filters.sort !== 'newest')} onPress={openFilter} />
-        </Row>
+          <Row style={{ gap: 8, marginTop: 8 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 8 }}>
+                    {['Ремонт квартири', 'Електрика', 'Сантехніка', 'Плитка', 'Фарбування'].map(query => <Chip key={query} title={query} onPress={() => setFilters(f => ({ ...f, query }))} />)}
+            </ScrollView>
+            <RoundButton icon="sliders" label="Фільтри" active={Boolean(filters.minPrice || filters.maxPrice || filters.urgency !== 'any' || filters.sort !== 'newest')} onPress={openFilter} />
+          </Row>
+        </View>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 22, gap: 15, paddingBottom: 23 }}>
         <Pressable accessibilityRole="button" onPress={() => setFilters(f => ({ ...f, category: 'all' }))} style={{ alignItems: 'center', gap: 9, width: 66 }}><View style={{ width: 56, height: 56, borderRadius: 19, backgroundColor: filters.category === 'all' ? C.lime : C.card, alignItems: 'center', justifyContent: 'center' }}><Icon name="compass" size={23} color={filters.category === 'all' ? C.dark : C.muted} /></View><T weight="medium" style={{ fontSize: 10, color: filters.category === 'all' ? C.text : C.muted }}>Усі послуги</T></Pressable>
@@ -68,7 +70,14 @@ export function CatalogScreen({ kind, navigate }: { kind: ListingKind; navigate:
       {citySearch.trim().length >= 2 ? <Button title={'Шукати: ' + citySearch.trim()} onPress={() => { setFilters(f => ({ ...f, city: citySearch.trim() })); setCityOpen(false); }} /> : null}
     </ChoiceModal>
     <ChoiceModal title="Уточнимо пошук" open={filterOpen} onClose={() => setFilterOpen(false)}>
-      <Field label="Максимальна ціна, ₴" value={draft.maxPrice} onChangeText={maxPrice => setDraft(f => ({ ...f, maxPrice: maxPrice.replace(/[^0-9]/g, '') }))} placeholder="Без обмежень" keyboardType="numeric" />
+      <Row style={{ gap: 10 }}>
+        <View style={{ flex: 1 }}><Field label="Ціна від, ₴" value={draft.minPrice} onChangeText={minPrice => setDraft(f => ({ ...f, minPrice: minPrice.replace(/[^0-9]/g, '') }))} placeholder="0" keyboardType="numeric" /></View>
+        <View style={{ flex: 1 }}><Field label="Ціна до, ₴" value={draft.maxPrice} onChangeText={maxPrice => setDraft(f => ({ ...f, maxPrice: maxPrice.replace(/[^0-9]/g, '') }))} placeholder="Без обмежень" keyboardType="numeric" /></View>
+      </Row>
+      <T weight="bold" style={{ marginBottom: 12 }}>Терміновість</T>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+        {([['any','Будь-коли'],['urgent','Терміново'],['week','До тижня'],['month','До місяця']] as const).map(([value,title]) => <Chip key={value} title={title} active={draft.urgency === value} onPress={() => setDraft(f => ({ ...f, urgency: value }))} />)}
+      </View>
       <Notice>Звертайте увагу на одиниці: ціна за м², точку та весь об’єкт відрізняється. Остаточний кошторис погоджується з майстром.</Notice>
       <T weight="bold" style={{ marginBottom: 12 }}>Сортування</T>
       <Row style={{ gap: 8, marginBottom: 24 }}><Chip title="Спочатку нові" active={draft.sort === 'newest'} onPress={() => setDraft(f => ({ ...f, sort: 'newest' }))} /><Chip title="За ціною" active={draft.sort === 'price'} onPress={() => setDraft(f => ({ ...f, sort: 'price' }))} /></Row>

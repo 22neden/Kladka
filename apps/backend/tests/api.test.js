@@ -52,7 +52,7 @@ test(process.env.KLADKA_REAL_MONGO ? 'real MongoDB replica-set API integration' 
   assert.equal(await m.Consent.countDocuments({user_id:a.user.id,type:'newsletter',value:true}),1);
   await call('patch','/api/profile',a.token,{...own.profile,experience_years:99}).expect(400);
  });
- const draft={kind:'service',title:'Ремонт квартири під ключ',description:'Виконую ремонт квартир та будинків за узгодженим кошторисом.',category:'renovation',city:'Рівне',price:1500,unit:'м²',team_name:'Команда',images:[]};
+ const draft={kind:'service',title:'Ремонт квартири під ключ',description:'Виконую ремонт квартир та будинків за узгодженим кошторисом.',category:'rough',city:'Рівне',price:1500,unit:'м²',team_name:'Команда',images:[]};
  await t.test('listing moderation, forged owner, ownership and favorites',async()=>{
   listing=(await call('post','/api/listings',a.token,{...draft,owner_id:b.user.id,moderation_status:'approved'}).expect(201)).body;
   assert.equal(listing.owner_id,a.user.id);assert.equal(listing.moderation_status,'pending');

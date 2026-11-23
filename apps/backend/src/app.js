@@ -7,7 +7,7 @@ const {randomInt}=require('node:crypto');
 const m=require('./models');
 const {ApiError,fail,hash,token,otpHash,text,email,password,choice,passwordHash,verifyPassword,publicProfile,wire}=require('./security');
 const {registerOAuth}=require('./oauth');
-const categories=['renovation','electric','plumbing','tile','painting','building','roof','design'];
+const categories=['demolition','foundation','building','roof','electric','plumbing','ventilation','rough','drywall','tile','painting','flooring','windows','landscape'];
 function createApp(c,sendMail) {
  const app=express();app.disable('x-powered-by');app.set('trust proxy',1);
  const webRoot=path.join(__dirname,'..','public');
@@ -120,8 +120,10 @@ function createApp(c,sendMail) {
  async function listingInput(b,uid){
   const price=b.price;if(price!==null&&(typeof price!=='number'||!Number.isFinite(price)||price<0||price>100000000))fail(400,'Перевірте ціну.');
   if(!Array.isArray(b.images)||b.images.length>6)fail(400,'До 6 фото.');
+  if(b.work_items!==undefined&&(!Array.isArray(b.work_items)||b.work_items.length>30||b.work_items.some(v=>typeof v!=='string'||v.length>180)))fail(400,'Перевірте перелік робіт.');
+  if(b.urgency!==undefined&&b.urgency!==null&&!['urgent','week','month'].includes(b.urgency))fail(400,'Перевірте терміновість.');
   const images=[];for(const url of b.images)images.push(await ownedImage(text(url,1,2048),uid));
-  return {kind:choice(b.kind,['service','request']),title:text(b.title,8,100),description:text(b.description,30,5000),category:choice(b.category,categories),city:text(b.city,2,80),price,unit:text(b.unit||'',0,30),team_name:text(b.team_name||'',0,100),images};
+  return {kind:choice(b.kind,['service','request']),title:text(b.title,8,100),description:text(b.description,30,5000),category:choice(b.category,categories),city:text(b.city,2,80),price,unit:text(b.unit||'',0,30),team_name:text(b.team_name||'',0,100),images,work_items:b.work_items||[],urgency:b.urgency||undefined};
  }
  app.post('/api/listings',auth,async(req,res)=>{await limit('listing:'+req.user._id,20,3600000);const input=await listingInput(req.body,req.user._id);const l=await m.Listing.create({...input,owner_id:req.user._id,moderation_status:c.moderation==='auto'?'approved':'pending'});res.status(201).json(wire(l));});
  app.patch('/api/listings/:id',auth,async(req,res)=>{const input=await listingInput(req.body,req.user._id);const l=await m.Listing.findOneAndUpdate({_id:req.params.id,owner_id:req.user._id},{$set:{...input,moderation_status:c.moderation==='auto'?'approved':'pending'}},{new:true});if(!l)fail(404,'Оголошення недоступне.');res.json(wire(l));});

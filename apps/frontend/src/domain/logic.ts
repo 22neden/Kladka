@@ -1,20 +1,23 @@
 import type { CategoryId, Listing, ListingKind, NewListing } from './types';
 
-export type Filters = { query: string; city: string; category: CategoryId | 'all'; maxPrice: string; sort: 'newest' | 'price' };
-export const emptyFilters: Filters = { query: '', city: '', category: 'all', maxPrice: '', sort: 'newest' };
+export type Filters = { query: string; city: string; category: CategoryId | 'all'; minPrice: string; maxPrice: string; urgency: 'any' | 'urgent' | 'week' | 'month'; sort: 'newest' | 'price' };
+export const emptyFilters: Filters = { query: '', city: '', category: 'all', minPrice: '', maxPrice: '', urgency: 'any', sort: 'newest' };
 export function filterListings(listings: Listing[], kind: ListingKind | null, filters: Filters, blocked: string[] = []) {
   const q = filters.query.trim().toLocaleLowerCase('uk');
   const city = filters.city.trim().toLocaleLowerCase('uk');
   const max = Number(filters.maxPrice.replace(',', '.'));
+  const min = Number(filters.minPrice.replace(',', '.'));
   return listings.filter(l =>
     l.status === 'active' &&
     (!l.moderation_status || l.moderation_status === 'approved') &&
     (!kind || l.kind === kind) &&
     !blocked.includes(l.owner_id) &&
-    (!q || [l.title, l.description, l.team_name].join(' ').toLocaleLowerCase('uk').includes(q)) &&
+    (!q || [l.title, l.description, l.team_name, ...(l.work_items || [])].join(' ').toLocaleLowerCase('uk').includes(q)) &&
     (!city || l.city.toLocaleLowerCase('uk') === city) &&
     (filters.category === 'all' || l.category === filters.category) &&
-    (!filters.maxPrice || (l.price !== null && l.price <= max))
+    (!filters.minPrice || (l.price !== null && l.price >= min)) &&
+    (!filters.maxPrice || (l.price !== null && l.price <= max)) &&
+    (filters.urgency === 'any' || l.urgency === filters.urgency)
   ).sort((a, b) => filters.sort === 'price'
     ? (a.price ?? Infinity) - (b.price ?? Infinity) || b.created_at.localeCompare(a.created_at)
     : b.created_at.localeCompare(a.created_at));

@@ -85,6 +85,8 @@ export function DetailScreen({ id, onBack, navigate }: { id: string; onBack: () 
       <Divider />
       <T weight="bold" style={{ fontSize: 18, marginBottom: 12 }}>Про {listing.kind === 'service' ? 'послугу' : 'завдання'}</T>
       <T selectable style={{ color: '#C8CDBE', lineHeight: 25 }}>{listing.description}</T>
+      {listing.work_items?.length ? <View style={{ marginTop: 18, gap: 8 }}><T weight="bold" style={{ fontSize: 15 }}>Перелік робіт</T><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{listing.work_items.map(item => <Pill key={item}>{item}</Pill>)}</View></View> : null}
+      {listing.urgency ? <Notice lime><T style={{ color: C.lime, fontSize: 12 }}>{listing.urgency === 'urgent' ? 'Терміново' : listing.urgency === 'week' ? 'Потрібно до тижня' : 'Потрібно до місяця'}</T></Notice> : null}
       <Divider />
       <Row style={{ gap: 13, marginBottom: 14 }}><View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: C.raised, alignItems: 'center', justifyContent: 'center' }}><T weight="bold" style={{ color: C.lime, fontSize: 18 }}>{initials(profile?.name || listing.team_name || 'Учасник')}</T></View><View style={{ flex: 1, gap: 4 }}><T weight="bold" style={{ fontSize: 16 }}>{listing.team_name || profile?.name || 'Учасник'}</T><T style={{ color: C.muted, fontSize: 11 }}>{listing.kind === 'service' ? 'Майстер / будівельна бригада' : 'Замовник'}</T></View></Row>
       <Button title="Профіль користувача" variant="secondary" style={{ marginBottom: 14 }} onPress={() => navigate({ name: 'publicProfile', id: listing.owner_id })} />

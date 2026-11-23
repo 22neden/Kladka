@@ -20,6 +20,16 @@ test('price filters handle zero, null prices and numeric ordering', () => {
   assert.deepEqual(filterListings(rows, null, { ...emptyFilters, sort: 'price' }).map(l => l.price), [0, 20, 150, null]);
   assert.deepEqual(filterListings(rows, null, { ...emptyFilters, maxPrice: '20', sort: 'price' }).map(l => l.price), [0, 20]);
 });
+test('price range and urgency filters combine with listing criteria', () => {
+  const rows = sampleListings.map((listing, i) => ({
+    ...listing,
+    id: String(i),
+    price: i * 100,
+    urgency: i % 2 ? 'week' as const : 'urgent' as const,
+  }));
+  const found = filterListings(rows, null, { ...emptyFilters, minPrice: '100', maxPrice: '300', urgency: 'week' });
+  assert.deepEqual(found.map(listing => listing.price), [100, 300]);
+});
 test('invalid budgets cannot be published; optional budget stays negotiable', () => {
   const draft: NewListing = { ...sampleListings[0] };
   assert.equal(validateListing({ ...draft, price: null }), null);

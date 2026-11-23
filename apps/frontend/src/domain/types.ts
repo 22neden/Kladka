@@ -1,6 +1,7 @@
 export type ListingKind = 'service' | 'request';
 export type ListingStatus = 'active' | 'closed' | 'hidden';
-export type CategoryId = 'renovation' | 'electric' | 'plumbing' | 'tile' | 'painting' | 'building' | 'roof' | 'design';
+export type CategoryId = 'demolition' | 'foundation' | 'building' | 'roof' | 'electric' | 'plumbing' | 'ventilation' | 'rough' | 'drywall' | 'tile' | 'painting' | 'flooring' | 'windows' | 'landscape';
+export type Urgency = 'any' | 'urgent' | 'week' | 'month';
 export type Profile = {
   id: string;
   name: string;
@@ -27,6 +28,8 @@ export type Listing = {
   status: ListingStatus;
   moderation_status?: 'pending' | 'approved' | 'rejected';
   created_at: string;
+  work_items?: string[];
+  urgency?: 'urgent' | 'week' | 'month';
 };
 export type Conversation = {
   id: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
-import { C, categories } from '../theme';
+import { C, categories, workItems } from '../theme';
 import { Button, Chip, Field, Header, Icon, Notice, Page, Row, T } from '../components/UI';
 import { useStore } from '../state/AppStore';
 import type { CategoryId, ListingKind, NewListing } from '../domain/types';
@@ -12,7 +12,7 @@ export function EditScreen({ id, initialKind = 'service', onBack, onSaved }: { i
   const store = useStore();
   const existing = store.listings.find(l => l.id === id);
   const [kind, setKind] = useState<ListingKind>(existing?.kind || initialKind);
-  const [category, setCategory] = useState<CategoryId>(existing?.category || 'renovation');
+  const [category, setCategory] = useState<CategoryId>(existing?.category || 'rough');
   const [title, setTitle] = useState(existing?.title || '');
   const [description, setDescription] = useState(existing?.description || '');
   const [city, setCity] = useState(existing?.city || store.profile.city);
@@ -20,6 +20,8 @@ export function EditScreen({ id, initialKind = 'service', onBack, onSaved }: { i
   const [unit, setUnit] = useState(existing?.unit || 'м²');
   const [team, setTeam] = useState(existing?.team_name || '');
   const [images, setImages] = useState<string[]>(existing?.images || []);
+  const [workItemsSelected, setWorkItemsSelected] = useState<string[]>(existing?.work_items || []);
+  const [urgency, setUrgency] = useState<'urgent' | 'week' | 'month'>(existing?.urgency || 'week');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function photo() {
@@ -28,7 +30,7 @@ export function EditScreen({ id, initialKind = 'service', onBack, onSaved }: { i
     catch { setError('Не вдалося відкрити фотографію. Перевір доступ до фототеки.'); }
   }
   async function save() {
-    const draft: NewListing = { title, description, kind, category, city, price: price.trim() ? Number(price.replace(',', '.')) : null, unit: kind === 'request' ? 'об’єкт' : unit, images, team_name: kind === 'service' ? team.trim() || store.profile.name : '' };
+    const draft: NewListing = { title, description, kind, category, city, price: price.trim() ? Number(price.replace(',', '.')) : null, unit: kind === 'request' ? 'об’єкт' : unit, images, team_name: kind === 'service' ? team.trim() || store.profile.name : '', work_items: workItemsSelected, urgency };
     const validation = validateListing(draft);
     if (validation) { setError(validation); return; }
     setBusy(true); setError('');
@@ -44,7 +46,10 @@ export function EditScreen({ id, initialKind = 'service', onBack, onSaved }: { i
         {!id ? <Row style={{ gap: 10, marginBottom: 24 }}><Chip title="Пропоную послуги" active={kind === 'service'} onPress={() => setKind('service')} /><Chip title="Шукаю майстра" active={kind === 'request'} onPress={() => setKind('request')} /></Row> : null}
         <Field label="НАЗВА" accessibilityLabel="Назва оголошення" placeholder={kind === 'service' ? 'Наприклад, ремонт квартир під ключ' : 'Наприклад, потрібен ремонт ванної'} value={title} onChangeText={setTitle} maxLength={100} />
         <T weight="bold" style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>КАТЕГОРІЯ</T>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>{categories.map(c => <Chip key={c.id} title={c.short} icon={c.icon} active={category === c.id} onPress={() => setCategory(c.id)} />)}</View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>{categories.map(c => <Chip key={c.id} title={c.short} icon={c.icon} active={category === c.id} onPress={() => { setCategory(c.id); setWorkItemsSelected([]); }} />)}</View>
+        <T weight="bold" style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>ПЕРЕЛІК РОБІТ</T>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>{(workItems[category] || []).map(item => <Chip key={item} title={item} active={workItemsSelected.includes(item)} onPress={() => setWorkItemsSelected(items => items.includes(item) ? items.filter(value => value !== item) : [...items, item])} />)}</View>
+        {kind === 'request' ? <View style={{ marginBottom: 22 }}><T weight="bold" style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>ТЕРМІНОВІСТЬ</T><Row style={{ gap: 8, flexWrap: 'wrap' }}>{([['urgent','Терміново'],['week','До тижня'],['month','До місяця']] as const).map(([value,title]) => <Chip key={value} title={title} active={urgency === value} onPress={() => setUrgency(value)} />)}</Row></View> : null}
         <Field label="ОПИС РОБІТ" accessibilityLabel="Опис робіт" placeholder={kind === 'service' ? 'Які роботи виконуєте? Що входить у вартість? Як працюєте?' : 'Що потрібно зробити? Вкажіть площу, стан об’єкта та бажані терміни.'} value={description} onChangeText={setDescription} multiline maxLength={5000} />
         <Field label="МІСТО / НАСЕЛЕНИЙ ПУНКТ" accessibilityLabel="Місто" placeholder="Рівне" value={city} onChangeText={setCity} maxLength={80} />
         {kind === 'service' ? <Field label="НАЗВА БРИГАДИ АБО ВАШЕ ІМ’Я" placeholder={store.profile.name} value={team} onChangeText={setTeam} maxLength={100} /> : null}
